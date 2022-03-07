@@ -9,18 +9,18 @@ final case class KTable[K, V](override val inner: KTableJ[K, V])
   def from[K, V](table: KTableS[K, V]) = KTable(table.inner)
 
   def leftJoinOption[VO, VR](other: KTable[K, VO])(
-      joiner: V => Option[VO] => VR
+      joiner: LeftValueJoiner[V, VO, VR]
   ) =
     this.from(
-      this.leftJoin(other)((left: V, right: VO) => joiner(left)(Option(right)))
+      this.leftJoin(other)(leftValueJoiner(joiner))
     )
 
   def leftJoinOption[VO, VR](other: KTable[K, VO])(named: Named)(
-      joiner: V => Option[VO] => VR
+      joiner: LeftValueJoiner[V, VO, VR]
   ) =
     this.from(
-      this.leftJoin(other, named)((left: V, right: VO) =>
-        joiner(left)(Option(right))
+      this.leftJoin(other, named)(
+        leftValueJoiner[V, VO, VR](joiner)
       )
     )
 
@@ -28,8 +28,8 @@ final case class KTable[K, V](override val inner: KTableJ[K, V])
       materialized: Materialized[K, VR, ByteArrayKeyValueStore]
   )(joiner: V => Option[VO] => VR) =
     this.from(
-      this.leftJoin(other, materialized)((left: V, right: VO) =>
-        joiner(left)(Option(right))
+      this.leftJoin(other, materialized)(
+        leftValueJoiner[V, VO, VR](joiner)
       )
     )
 
@@ -37,8 +37,36 @@ final case class KTable[K, V](override val inner: KTableJ[K, V])
       materialized: Materialized[K, VR, ByteArrayKeyValueStore]
   )(joiner: V => Option[VO] => VR) =
     this.from(
-      this.leftJoin(other, named, materialized)((left: V, right: VO) =>
-        joiner(left)(Option(right))
+      this.leftJoin(other, named, materialized)(
+        leftValueJoiner[V, VO, VR](joiner)
+      )
+    )
+
+  def leftJoinOption[VR, KO, VO](
+      other: KTable[KO, VO]
+  )(keyExtractor: KeyExtractor[V, KO])(joiner: LeftValueJoiner[V, VO, VR])(
+      materialized: Materialized[K, VR, ByteArrayKeyValueStore]
+  ) = this.from(
+    this.leftJoin(
+      other,
+      keyExtractor,
+      leftValueJoinerAsJava(joiner),
+      materialized
+    )
+  )
+
+  def leftJoinOption[VR, KO, VO](other: KTable[KO, VO])(
+      keyExtractor: KeyExtractor[V, KO]
+  )(joiner: LeftValueJoiner[V, VO, VR])(named: Named)(
+      materialized: Materialized[K, VR, ByteArrayKeyValueStore]
+  ): KTable[K, VR] =
+    this.from(
+      this.leftJoin(
+        other,
+        keyExtractor,
+        leftValueJoinerAsJava(joiner),
+        named,
+        materialized
       )
     )
 }
