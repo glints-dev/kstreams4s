@@ -22,6 +22,20 @@ final case class KTable[K, V](override val inner: KTableJ[K, V])
       materialized: Materialized[K, V, ByteArrayKeyValueStore]
   ) = filter(filterPredicate(predicate), named, materialized)
 
+  def filterNotOption(predicate: FilterPredicate[K, V]) =
+    filterNot(filterPredicate(predicate))
+
+  def filterNotOption(predicate: FilterPredicate[K, V])(
+      materialized: Materialized[K, V, ByteArrayKeyValueStore]
+  ) = filterNot(filterPredicate(predicate), materialized)
+
+  def filterNotOption(predicate: FilterPredicate[K, V])(named: Named) =
+    filterNot(filterPredicate(predicate), named)
+
+  def filterNotOption(predicate: FilterPredicate[K, V])(named: Named)(
+      materialized: Materialized[K, V, ByteArrayKeyValueStore]
+  ) = filterNot(filterPredicate(predicate), named, materialized)
+
   def leftJoinOption[VO, VR](other: KTable[K, VO])(
       joiner: LeftValueJoiner[V, VO, VR]
   ) =
