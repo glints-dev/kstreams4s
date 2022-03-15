@@ -8,6 +8,20 @@ final case class KTable[K, V](override val inner: KTableJ[K, V])
     extends KTableS[K, V](inner) {
   def from[K, V](table: KTableS[K, V]) = KTable(table.inner)
 
+  def filterOption(predicate: FilterPredicate[K, V]) =
+    filter(filterPredicate(predicate))
+
+  def filterOption(predicate: FilterPredicate[K, V])(
+      materialized: Materialized[K, V, ByteArrayKeyValueStore]
+  ) = filter(filterPredicate(predicate), materialized)
+
+  def filterOption(predicate: FilterPredicate[K, V])(named: Named) =
+    filter(filterPredicate(predicate), named)
+
+  def filterOption(predicate: FilterPredicate[K, V])(named: Named)(
+      materialized: Materialized[K, V, ByteArrayKeyValueStore]
+  ) = filter(filterPredicate(predicate), named, materialized)
+
   def leftJoinOption[VO, VR](other: KTable[K, VO])(
       joiner: LeftValueJoiner[V, VO, VR]
   ) =
