@@ -1,10 +1,10 @@
 package kstreams4s.serialization
 
-import org.apache.kafka.common.serialization.Serializer
-import io.confluent.kafka.serializers.KafkaAvroSerializer
 import com.sksamuel.avro4s.RecordFormat
+import io.confluent.kafka.serializers.KafkaAvroSerializer
+import org.apache.kafka.common.serialization.Serializer
 
-case class Avro4sSerializer[T](format: RecordFormat[T])
+final case class Avro4sSerializer[T](format: RecordFormat[T])
     extends Serializer[T]() {
   private val inner = new KafkaAvroSerializer()
 
